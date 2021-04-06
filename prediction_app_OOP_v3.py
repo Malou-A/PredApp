@@ -116,6 +116,12 @@ class SecondFrame:
         self.root = root
         self.channel = channel
         pred_path = channels[self.channel]
+        w = 1000
+        h = 700
+        im_frame_width = int(h*0.8)
+        im_frame_height = int(h*0.8)
+        
+        self.root.geometry("{}x{}+{}+{}".format(w, h, int(x), int(y)))
         
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -183,8 +189,6 @@ class ThirdFrame:
         self.root = root
         w = 800
         h = 800
-        x = (screen_width/2) - (w/2)
-        y = (screen_height/2) - (h/2)
         self.root.geometry("{}x{}+{}+{}".format(w, h, int(x), int(y)))
         self.img = img
         self.x0 = x0
@@ -199,10 +203,16 @@ class ThirdFrame:
         
         if self.img.shape[0] != im_frame_width:
             self.img = resize(self.img,(im_frame_width, im_frame_height),anti_aliasing=False,order=0, preserve_range=True)     
-            print("resizing")
+            
         
         for widget in self.root.winfo_children():
             widget.destroy()
+        
+        self.B1 = Button(self.root, text = "Back", command = lambda: SecondFrame(self.root, self.channel, self.img))
+        self.B1.place(x = int(w*0.30/2), y = int(55+ h*0.88), anchor = "center", width = 150)
+        
+        self.B3 = Button(self.root, text = "Exit", command = self.root.destroy)
+        self.B3.place(x = 160 + int(w*0.30/2), y = int(55+ h*0.88), anchor = "center", width = 150)
             
         global undo, pencil, wand, eraser, zoomin, pensize, brighten, labels, recompile
         
@@ -243,7 +253,8 @@ class ThirdFrame:
         
         circle = Checkbutton(self.root, text = "Add circles", variable = self.imagewindow.var1, command = self.imagewindow.check_function)
         circle.place(x = 0.3*w, y = int(h*0.40 + (im_frame_height/2) + 10))
-        
+        if self.channel == "nuclei" or self.channel == "cell":
+            circle.config(state=DISABLED)
         
         pensize = IntVar()
         self.pensize_slider = Scale(self.root, variable = pensize, from_=1, to = 20, command = self.imagewindow.set_pensize, orient = HORIZONTAL)
@@ -341,12 +352,16 @@ class PanelWindow:
             MainWindow(self.root)
             return
         label_im = skimage.io.imread(pred_path + image)
-        label_im = img_as_float(label_im)
+        #print(np.unique(label_im))
+        #label_im = img_as_float(label_im)
 
         if len(label_im.shape) > 2:
             label_im = rgb2lab(label_im)
             label_im = label_im[:,:,0]
         label_im = skimage.morphology.label(label_im)
+        #label_im = label_im/(len(np.unique(label_im)))
+        #print(np.unique(label_im))
+        
         return label_im            
     
     def crop_im(self, im,x0,x1,y0,y1):
@@ -372,8 +387,8 @@ class PanelWindow:
         if any([self.x0,self.x1,self.y0,self.y1]):
             image = self.crop_im(image, self.x0,self.x1,self.y0,self.y1)
         
-        self.img = resize(self.img,(im_frame_width, im_frame_height),anti_aliasing=False,order=0, preserve_range=True)      
-        self.img = img_as_ubyte(image)
+        self.img = resize(image,(im_frame_width, im_frame_height),anti_aliasing=False,order=0, preserve_range=True)      
+        self.img = img_as_ubyte(self.img)
         self.panel_config()
         
     def check_function(self):
@@ -389,8 +404,9 @@ class PanelWindow:
             cell_im = self.draw_im.copy()
             #if self.lab_color == 0:
             #    cell_im[self.mask_im]
-            cell_im[self.mask_im == 1 ] = self.lab_color
-            cell_im[self.filled_im == 1] = self.lab_color  
+            if self.lab_color != 0:
+                cell_im[self.mask_im == 1 ] = self.lab_color
+                cell_im[self.filled_im == 1] = self.lab_color  
             
         if self.var1.get():  
             label_im = self.get_label()
@@ -502,32 +518,35 @@ class PanelWindow:
         cc[cc > self.imshapeX - 1] = self.imshapeX-1
         
         if self.Eraser:
-            self.reset_mask()
+            
             self.draw_im[rr,cc] = self.orig_im[rr,cc]
             self.label_im[rr,cc] = 0
             self.check_function()
+            
         else:
             self.mask_im[rr,cc] = 1
             self.check_function()
-    
+   
     def fill_holes(self, event):
         self.old_im = self.filled_im.copy()
         
         self.filled_im = ndimage.binary_fill_holes(self.mask_im)
-        self.label_im[self.filled_im == 1] = self.lab_color
-        
         self.check_function()
         
+        if self.lab_color != 0:
+            self.label_im[self.mask_im == 1] = self.lab_color
+            self.label_im[self.filled_im == 1] = self.lab_color
+       
         
-    def undo(self):
+        
+    def undo(self, event = None):
 
         if self.Eraser:
+            self.draw_im = self.old_draw.copy()
             self.label_im = self.old_lab.copy()
-            self.draw_im = self.orig_im.copy()
-            self.draw_im[self.label_im > 0] = 0
-            self.draw_im = self.draw_im.copy() + self.label_im.copy() 
         self.filled_im = self.old_im.copy()
         self.mask_im = self.old_im.copy()
+        
         self.check_function()
         
         
@@ -542,22 +561,11 @@ class PanelWindow:
             self.panel.config(cursor = "plus")
 
     def reset_mask(self):
-        self.draw_im[self.filled_im == 1] = self.lab_color
+        if self.lab_color != 0:
+            self.draw_im[self.filled_im == 1] = self.lab_color
         self.mask_im[self.filled_im == 1] = 0 
         self.filled_im = self.mask_im.copy()
-        
-    def new_label(self, event):
-        #self.label_im[(self.label_im == 0) & (self.filled_im == 1)] = 1
-        labels = np.unique(self.label_im)
-        label_count = 1/(len(labels) + 40)
-        new_label = labels[-1] + label_count
-        self.label_im[self.filled_im == 1] = new_label
-        self.draw_im[self.filled_im == 1] = new_label
-        self.check_function()
-        #self.image_configure(self.draw_im)
-        self.reset_mask()
-        
-    
+           
     def get_multi(self):
         if any([self.x0,self.x1,self.y0,self.y1]):
             xcrop = self.x1-self.x0
@@ -600,15 +608,18 @@ class PanelWindow:
         self.panel.bind("<ButtonRelease-1>", self.fill_holes)
         self.panel.config(cursor = "dot")
     def save_old_im(self, event):
-        
+        #pass
+        # self.reset_mask()
+        self.old_draw = self.draw_im.copy()
         self.old_lab = self.label_im.copy()
-        print("saved old_lab")
+        # print("saved old")
 
     def set_pensize(self, event):    
         self.pensize = pensize.get()
-        print(self.pensize)
-    def erase(self):
+        
+    def erase(self, event = None):
         if self.Eraser == False:
+            self.reset_mask()
             eraser.config(relief = SUNKEN)
             self.raise_buttons(eraser)
             self.panel.bind("<Button-1>", self.save_old_im)
@@ -616,7 +627,7 @@ class PanelWindow:
             self.Eraser = True
         else:
             self.panel.unbind("<Button-1>")
-    def pencil_draw(self):
+    def pencil_draw(self, event = None):
         self.reset_mask()
         self.lab_color = 1
         pencil.config(relief = SUNKEN)
@@ -625,7 +636,6 @@ class PanelWindow:
         self.panel.bind("<ButtonRelease-1>", self.fill_holes)
     def recompile(self):
         
-        print(np.unique(self.label_im))
         #self.label_im[self.filled_im == 1] = self.lab_color
         self.reset_mask()
         self.check_function()
@@ -679,7 +689,7 @@ class PanelWindow:
             self.label_im = img_as_float(self.label_im)
             wand.config(state = DISABLED, relief = SUNKEN)
             recompile.config(state = DISABLED, relief = SUNKEN)
-        
+        self.old_label = self.label_im.copy()
         self.lab_color = 1
         self.draw_im = img_as_float(skimage.io.imread(image_path + image))
         
@@ -687,13 +697,15 @@ class PanelWindow:
         self.draw_im[self.label_im > 0] = 0
         self.draw_im = self.draw_im.copy() + self.label_im.copy()
         self.old_im = self.filled_im.copy()
+        self.old_draw = self.draw_im.copy()
         #self.old_draw = self.draw_im.copy()
         
         self.panel.bind("<z>", self.zoom_on)
-        self.panel.bind("<c>", self.new_label)        
+        self.panel.bind("<c>", self.pencil_draw)        
         self.panel.bind("<h>", self.hide_labels)
         self.panel.bind("<b>", self.toggle_bright)
-        
+        self.panel.bind("<d>", self.erase)
+        self.panel.bind("<q>", self.undo)
         self.panel.bind("<v>", self.edit_label)
         
         self.panel.config(cursor = "dot")
@@ -701,21 +713,26 @@ class PanelWindow:
         self.panel.focus_set()
         self.check_function()
 
-root_dir = '/media/malou/Seagate Expansion Drive/Malou_Master/appBuilding/Prediction/predictions/image_folders/'
-image_path = '/media/malou/Seagate Expansion Drive/Malou_Master/appBuilding/Prediction/predictions/image_folders/cells/'
-cell_path = '/media/malou/Seagate Expansion Drive/Malou_Master/appBuilding/Prediction/predictions/cells/'
-lysosome_path = '/media/malou/Seagate Expansion Drive/Malou_Master/appBuilding/Prediction/predictions/lysosomes/'
-nuclei_path = '/media/malou/Seagate Expansion Drive/Malou_Master/appBuilding/Prediction/predictions/nuclei/'    
 
-savedir_nuc = "new_labels/nuclei/"
-savedir_cell = "new_labels/cell/"
-savedir_lysosome = "new_labels/lysosome/"
+root_dir = os.getcwd()
+
+image_path = root_dir + '/images/nuclei/'
+
+cell_path = root_dir + '/predictions/cell/'
+lysosome_path = root_dir + '/predictions/lysosome/'
+nuclei_path = root_dir + '/predictions/nuclei/'    
+
+savedir_nuc = root_dir + "/new_labels/nuclei/"
+savedir_cell = root_dir + "/new_labels/cell/"
+savedir_lysosome = root_dir + "/new_labels/lysosome/"
 os.makedirs(savedir_nuc, exist_ok = True)
 os.makedirs(savedir_cell, exist_ok = True)
 os.makedirs(savedir_lysosome, exist_ok = True)
+
 channels = {"nuclei": nuclei_path, "cell": cell_path, "lysosome":lysosome_path}
 
-
+#x = (screen_width/2) - (w/2)
+#y = (screen_height/2) - (h/2)
 w = 1000
 h = 700
 im_frame_width = int(h*0.8)
@@ -724,7 +741,7 @@ im_frame_height = int(h*0.8)
 cropsize = 150
 
 def main(): 
-    global screen_width, screen_height
+    global screen_width, screen_height, x, y 
     root = Tk()
     root.title("Prediction App")
     screen_width = root.winfo_screenwidth()
