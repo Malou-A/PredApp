@@ -5,6 +5,10 @@ If a prediction is wrong the user may edit the label, and obtain new labels to c
 
 **Program is still under construction and some bugs are to be fixed in the drawing window**
 
+Icons used are from https://icons8.com
+
+Buttons were created using https://www.imagefu.com
+
 ## Installation
 
 In your terminal type:
