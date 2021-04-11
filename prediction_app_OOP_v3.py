@@ -756,8 +756,7 @@ class PanelWindow:
 
 
 
-#root_dir = os.getcwd()
-root_dir = "/media/malou/Seagate Expansion Drive/Malou_Master/appBuilding/Tkinter_app/PredApp2"
+root_dir = os.getcwd()
 
 image_path = root_dir + '/images/nuclei/'
 
