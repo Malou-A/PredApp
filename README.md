@@ -16,6 +16,7 @@ Easiest is to install it via [conda](https://docs.conda.io/en/latest/miniconda.h
 In your terminal type:
 ```bash
 conda env create -f predAppEnv.yml
+conda activate PreddAppEnv
 ```
 To run the program type:
 
