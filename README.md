@@ -11,6 +11,8 @@ Buttons were created using https://www.imagefu.com
 
 ## Installation
 
+Easiest is to install it via [conda](https://docs.conda.io/en/latest/miniconda.html).
+
 In your terminal type:
 ```bash
 conda env create -f predAppEnv.yml
@@ -20,6 +22,8 @@ To run the program type:
 ```bash
 python prediction_editor.py
 ```
+
+If you want to install it without conda, you can find the packages and versions used in predAppEnv.yml
 
 ## Usage
 
