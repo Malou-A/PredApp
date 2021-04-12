@@ -602,6 +602,9 @@ class PanelWindow:
     def reset_mask(self):
         if self.lab_color != 0:
             self.draw_im[self.filled_im == 1] = self.lab_color
+            self.label_im[self.mask_im == 1] = self.lab_color
+            self.label_im[self.filled_im == 1] = self.lab_color
+
         self.mask_im[self.filled_im == 1] = 0
         self.filled_im = self.mask_im.copy()
 
@@ -618,7 +621,7 @@ class PanelWindow:
 
     def get_color(self,event):
         xmult, ymult = self.get_multi()
-
+        self.save_old_im()
         x = round(event.x*xmult + self.x0)
         y = round(event.y*ymult + self.y0)
         if self.lab_color != self.label_im[y,x]:
@@ -633,6 +636,7 @@ class PanelWindow:
             self.Edit = True
             self.panel.bind("<Button-1>", self.get_color)
 
+
     def raise_buttons(self, button):
         buttonlist = [undo, pencil, wand, eraser, zoomin]
         buttonlist.remove(button)
@@ -646,11 +650,12 @@ class PanelWindow:
         self.panel.bind('<B1-Motion>', self.motion)
         self.panel.bind("<ButtonRelease-1>", self.fill_holes)
         self.panel.config(cursor = "dot")
-    def save_old_im(self, event):
+    def save_old_im(self, event = None):
         #pass
         # self.reset_mask()
         self.old_draw = self.draw_im.copy()
         self.old_lab = self.label_im.copy()
+        self.old_im = self.filled_im.copy()
         # print("saved old")
 
     def set_pensize(self, event):
@@ -661,21 +666,25 @@ class PanelWindow:
             self.reset_mask()
             eraser.config(relief = tk.SUNKEN)
             self.raise_buttons(eraser)
-            self.panel.bind("<Button-1>", self.save_old_im)
+            #self.panel.bind("<Button-1>", self.save_old_im)
             self.old_lab = self.label_im.copy()
             self.Eraser = True
-        else:
-            self.panel.unbind("<Button-1>")
+
+        self.panel.bind("<Button-1>", self.save_old_im)
+        #else:
+        #    self.panel.unbind("<Button-1>")
     def pencil_draw(self, event = None):
         self.reset_mask()
         self.lab_color = 1
         pencil.config(relief = tk.SUNKEN)
         self.raise_buttons(pencil)
+        self.panel.bind("<Button-1>", self.save_old_im)
         self.panel.bind('<B1-Motion>', self.motion)
         self.panel.bind("<ButtonRelease-1>", self.fill_holes)
     def recompile(self):
 
         self.reset_mask()
+        self.save_old_im()
 
         new_label_im = self.label_im.copy()
         new_label_im = img_as_ubyte(new_label_im)
@@ -747,7 +756,7 @@ class PanelWindow:
         self.panel.bind("<d>", self.erase)
         self.panel.bind("<q>", self.undo)
         self.panel.bind("<v>", self.edit_label)
-
+        self.panel.bind("<Button-1>", self.save_old_im)
         self.panel.config(cursor = "dot")
         #self.panel.bind("<KeyRelease-z>", self.zoom_off)
         self.panel.focus_set()
