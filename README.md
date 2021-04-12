@@ -27,7 +27,7 @@ If you want to install it without conda, you can find the packages and versions 
 
 ## Usage
 
-In the folder you find 3 example images for each channel (Nuclei, Cell and Lysosome). When you open the program, the folder for nuclei channel is opened as default. You may change the folder. Then you can chose which model to see the prediction from.
+In the "images" folder you find 3 example images for each channel (Nuclei, Cell and Lysosome). When you open the program, the folder for nuclei channel is opened as default. You may change the folder. Then you can chose which model to see the prediction from.
 
 ![image1](/graphics/1.png)
 
