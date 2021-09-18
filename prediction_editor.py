@@ -30,16 +30,19 @@ class MainWindow:
 
         for widget in self.root.winfo_children():
             widget.destroy()
-
+        
+        w = 1000
+        h = 700
+        
         self.ImageLab = tk.Label(self.root, text = "Images in choosen directory", fg = textcol, bg = bgcol)
         self.ImageLab.grid(column = 1, row = 1, padx = 20, pady = 20)
         # Create a frame for listbox to be able to include scrollbar.
         self.Listframe = tk.Frame(self.root)
         #self.Listframe.place(x = 25, y = int(h*0.08), width = int(w*0.35), height =  im_frame_height)
-        self.Listframe.grid(column = 1, columnspan = 3, row = 2, rowspan = 8, padx = 20, pady = (0,20))
+        self.Listframe.grid(column = 1, columnspan = 3, row = 2, rowspan = 8, ipady = int(h/2)-200 , ipadx = int(w/32) ,padx = 20, pady = (0,20))
         self.Listframe.grid_propagate(False)
 
-        self.ImageList = tk.Listbox(self.Listframe, bg = "#302732", fg = textcol,width = 40, height = 40)
+        self.ImageList = tk.Listbox(self.Listframe, bg = "#302732", fg = textcol)
         self.ImageList.pack(side = "left", fill = "both", expand = True)
 
         if image_path:
