@@ -3,7 +3,6 @@
 This app is created to be able to visualize the result of predictions done with models trained to segment nuclei, cell and lysosome.
 If a prediction is wrong the user may edit the label, and obtain new labels to continue train the models and improve them.
 
-**Program is still under construction and some bugs are to be fixed in the drawing window**
 
 Icons used are from https://icons8.com
 
