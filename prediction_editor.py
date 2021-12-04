@@ -31,7 +31,11 @@ class MainWindow:
         h = 700
         for widget in self.root.winfo_children():
             widget.destroy()
-
+        
+        self.CellStatus = "disabled"
+        self.NucleiStatus = "disabled"
+        self.LysosomeStatus = "disabled"
+        
         self.ImageLab = tk.Label(self.root, text = "Images in choosen directory", fg = textcol, bg = bgcol)
         self.ImageLab.grid(column = 1, row = 1, padx = 20, pady = 20)
         # Create a frame for listbox to be able to include scrollbar.
@@ -81,13 +85,13 @@ class MainWindow:
         x_step = (im_frame_width - 450)/3
         x_step = x_step + 150
 
-        self.B2 = tk.Button(self.root, image = self.NucleiModel,bg = bgcol, activebackground = bgcol, borderwidth = 0, highlightthickness = 0, command = lambda: self.get_channel('nuclei'))
+        self.B2 = tk.Button(self.root, image = self.NucleiModel,bg = bgcol, activebackground = bgcol, borderwidth = 0, highlightthickness = 0, command = lambda: self.get_channel('nuclei'), state = self.NucleiStatus)
         self.B2.grid(column = 4, row = 12)
         #self.B2.place(x = 20, y = 20 , width = 150)
-        self.B3 = tk.Button(self.root, image = self.CellModel, bg = bgcol, activebackground = bgcol,borderwidth = 0, highlightthickness = 0,command = lambda: self.get_channel('cell'))
+        self.B3 = tk.Button(self.root, image = self.CellModel, bg = bgcol, activebackground = bgcol,borderwidth = 0, highlightthickness = 0,command = lambda: self.get_channel('cell'), state = self.CellStatus)
         self.B3.grid(column = 5, row = 12)
         #self.B3.place(x = x_step+20, y = 20, width = 150)
-        self.B4 = tk.Button(self.root, image = self.LysosomeModel, bg = bgcol, activebackground = bgcol,borderwidth = 0, highlightthickness = 0, command = lambda: self.get_channel('lysosome'))
+        self.B4 = tk.Button(self.root, image = self.LysosomeModel, bg = bgcol, activebackground = bgcol,borderwidth = 0, highlightthickness = 0, command = lambda: self.get_channel('lysosome'), state = self.LysosomeStatus)
         self.B4.grid(column = 6, row = 12)
         #self.B4.place(x = 2*x_step +20 , y = 20, width = 150)
 
@@ -112,17 +116,35 @@ class MainWindow:
         self.old_image_path = image_path
         image_path = filedialog.askdirectory(initialdir = root_dir)
 
-
-        #image_path = image_path + "/"
         # Action to keep previous image path if non is choosen.
         self.PopListBox()
 
     def get_channel(self, channel):
         self.channel = channel
         SecondFrame(self.root, self.channel, self.img)
-
+        
+    def checkChannelStatus(self, image):
+        global pred_path
+        if os.path.isfile(channels["cell"] + image):
+            self.CellStatus = "active"
+            pred_path = channels["cell"]
+        else: 
+            self.CellStatus = "disabled"
+        if os.path.isfile(channels["nuclei"] + image):
+            self.NucleiStatus = "active"
+            pred_path = channels["nuclei"]
+        else: 
+            self.NucleiStatus = "disabled"
+        if os.path.isfile(channels["lysosome"] + image):
+            self.LysosomeStatus = "active"
+            pred_path = channels["lysosome"]
+        else: 
+            self.LysosomeStatus = "disabled"
+        self.B2.configure(state = self.NucleiStatus)
+        self.B3.configure(state = self.CellStatus)
+        self.B4.configure(state = self.LysosomeStatus)
     def callback(self, event):
-        global image, imframeX
+        global image, imframeX, pred_path
         # Gives selection object, which contain the index.
         selection = event.widget.curselection()
         if selection:
@@ -131,9 +153,12 @@ class MainWindow:
             # Open the image and also resize it to the same size as "panel" which is containing the image.
             self.img = skimage.io.imread(image_path + image)
             imframeX = self.img.shape[0]
-            imagewindow = PanelWindow(self.root, self.panel, self.img)
-            imagewindow.panel_config()
+            self.checkChannelStatus(image)
+            self.imagewindow = PanelWindow(self.root, self.panel, self.img)
+            self.imagewindow.reset_vars()
+            self.imagewindow.panel_config()
             self.panel.config(background = bgcol, relief = "ridge", borderwidth = 10)
+        
 
 class SecondFrame:
 
@@ -147,7 +172,7 @@ class SecondFrame:
         h = 700
         im_frame_width = int(h*0.8)
         im_frame_height = int(h*0.8)
-
+        
         self.root.geometry("{}x{}+{}+{}".format(w, h, int(x), int(y)))
 
         for widget in self.root.winfo_children():
@@ -161,7 +186,7 @@ class SecondFrame:
         #self.panel.place(x=int(w*0.65), y = int(h*0.5 - 20), anchor = "center")
 
         self.imagewindow = PanelWindow(self.root, self.panel, self.img, self.channel) #, self.var1, self.var2, self.var3, self.var4)
-
+        self.imagewindow.reset_vars()
         self.circle = tk.Checkbutton(self.root, text = "Mark with circles", bg = bgcol, fg = textcol, variable = self.imagewindow.var1, borderwidth = 0, selectcolor = "#322b33",activebackground =  "#39303b", activeforeground = textcol, highlightthickness = 0, command = self.imagewindow.check_function)
         self.circle.grid(column = 3, columnspan = 1, row = 10, rowspan = 1, sticky = 'w')
         # self.circle.place(x = 0.1*w, y = h*0.2)
@@ -187,7 +212,7 @@ class SecondFrame:
         self.boundaries.grid(column = 3, columnspan = 1, row = 13, rowspan = 1, sticky = 'w')
         # self.boundaries.place(x = 0.1*w, y = h*0.2 + 60)
 
-        self.B6 = tk.Button(self.root, image = self.backIm, bg = bgcol, activebackground = bgcol, highlightthickness = 0, borderwidth = 0, command = lambda: MainWindow(self.root))
+        self.B6 = tk.Button(self.root, image = self.backIm, bg = bgcol, activebackground = bgcol, highlightthickness = 0, borderwidth = 0, command = self.backToMain)
         self.B6.grid(column = 2, columnspan = 1, row = 28, rowspan = 1, padx = (50,20))
         #self.B6.place(x = int(w*0.20/2), y = int(35+ h*0.88), anchor = "center")
 
@@ -203,7 +228,11 @@ class SecondFrame:
         self.root.bind('<Left>', self.left)
         self.root.bind('<Right>', self.right)
 
-
+    def backToMain(self):
+        self.imagewindow.reset_vars()
+        self.imagewindow.check_function()
+        MainWindow(self.root)
+        
     def left(self, event):
         global image
         images = os.listdir(image_path)
@@ -816,7 +845,7 @@ def main():
     root.title("Prediction Editor")
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
-    print(screen_width, screen_height)
+    # print(screen_width, screen_height)
     x = (screen_width/2) - (w/2)
 
     y = (screen_height/2) - (h/2)
