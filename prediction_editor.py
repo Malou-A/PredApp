@@ -27,22 +27,20 @@ from scipy import ndimage
 class MainWindow:
     def __init__(self, root):
         self.root = root
-
-        for widget in self.root.winfo_children():
-            widget.destroy()
-        
         w = 1000
         h = 700
-        
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
         self.ImageLab = tk.Label(self.root, text = "Images in choosen directory", fg = textcol, bg = bgcol)
         self.ImageLab.grid(column = 1, row = 1, padx = 20, pady = 20)
         # Create a frame for listbox to be able to include scrollbar.
         self.Listframe = tk.Frame(self.root)
         #self.Listframe.place(x = 25, y = int(h*0.08), width = int(w*0.35), height =  im_frame_height)
-        self.Listframe.grid(column = 1, columnspan = 3, row = 2, rowspan = 8, ipady = int(h/2)-200 , ipadx = int(w/32) ,padx = 20, pady = (0,20))
+        self.Listframe.grid(column = 1, columnspan = 3, row = 2, rowspan = 8,  ipady = int(h/2)-200 , ipadx = int(w/32),  padx = 20, pady = (0,20))
         self.Listframe.grid_propagate(False)
 
-        self.ImageList = tk.Listbox(self.Listframe, bg = "#302732", fg = textcol)
+        self.ImageList = tk.Listbox(self.Listframe, bg = "#302732", fg = textcol) #,width = 40, height = 40)
         self.ImageList.pack(side = "left", fill = "both", expand = True)
 
         if image_path:
@@ -155,13 +153,18 @@ class SecondFrame:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        self.panel = tk.Label(self.root, width = im_frame_width, height = im_frame_height, background = bgcol, relief = "ridge", borderwidth = 10)
-        self.panel.place(x=int(w*0.65), y = int(h*0.5 - 20), anchor = "center")
+        self.ImNameLab = tk.Label(root, text = image, fg = textcol,bg = bgcol)#, height = 5)#width = im_frame_width,bg = bgcol,
+        self.ImNameLab.grid(column = 4, columnspan = 3, row = 1, rowspan = 1, pady = (10,0))
+
+        self.panel = tk.Label(self.root, width = im_frame_width-40, height = im_frame_height-40, background = bgcol, relief = "ridge", borderwidth = 10)
+        self.panel.grid(column = 4, columnspan = 3, row = 2, rowspan = 25, padx=(50,10), pady=20)
+        #self.panel.place(x=int(w*0.65), y = int(h*0.5 - 20), anchor = "center")
 
         self.imagewindow = PanelWindow(self.root, self.panel, self.img, self.channel) #, self.var1, self.var2, self.var3, self.var4)
 
         self.circle = tk.Checkbutton(self.root, text = "Mark with circles", bg = bgcol, fg = textcol, variable = self.imagewindow.var1, borderwidth = 0, selectcolor = "#322b33",activebackground =  "#39303b", activeforeground = textcol, highlightthickness = 0, command = self.imagewindow.check_function)
-        self.circle.place(x = 0.1*w, y = h*0.2)
+        self.circle.grid(column = 3, columnspan = 1, row = 10, rowspan = 1, sticky = 'w')
+        # self.circle.place(x = 0.1*w, y = h*0.2)
 
         self.editIm = tk.PhotoImage(file = button_dir + "EditAnnot.png")
         self.backIm = tk.PhotoImage(file = button_dir + "back.png")
@@ -173,25 +176,29 @@ class SecondFrame:
             self.circle.config(state=tk.ACTIVE)
 
         self.labels = tk.Checkbutton(self.root, selectcolor = "#322b33",  text = "Add labels",bg = bgcol, fg = textcol, variable = self.imagewindow.var2, borderwidth = 0, activebackground =  "#39303b", activeforeground = textcol, highlightthickness = 0, command = self.imagewindow.check_function)
-        self.labels.place(x = 0.1*w, y = h*0.2 + 20)
+        self.labels.grid(column = 3, columnspan = 1, row = 11, rowspan = 1, padx=(0,50),sticky = 'w')
+        # self.labels.place(x = 0.1*w, y = h*0.2 + 20)
 
         self.brighten = tk.Checkbutton(self.root, text = "Brighten image", selectcolor = "#322b33",bg = bgcol, fg = textcol, variable = self.imagewindow.var3,  borderwidth = 0, activebackground =  "#39303b", activeforeground = textcol, highlightthickness = 0,command = self.imagewindow.check_function)
-        self.brighten.place(x = 0.1*w, y = h*0.2 + 40)
+        self.brighten.grid(column = 3, columnspan = 1, row = 12, rowspan = 1, sticky = 'w')
+        # self.brighten.place(x = 0.1*w, y = h*0.2 + 40)
 
         self.boundaries = tk.Checkbutton(self.root, text = "Mark boundaries", selectcolor = "#322b33", bg = bgcol, fg = textcol,variable = self.imagewindow.var4, borderwidth = 0, activebackground =  "#39303b", activeforeground = textcol, highlightthickness = 0, command = self.imagewindow.check_function)
-        self.boundaries.place(x = 0.1*w, y = h*0.2 + 60)
+        self.boundaries.grid(column = 3, columnspan = 1, row = 13, rowspan = 1, sticky = 'w')
+        # self.boundaries.place(x = 0.1*w, y = h*0.2 + 60)
 
         self.B6 = tk.Button(self.root, image = self.backIm, bg = bgcol, activebackground = bgcol, highlightthickness = 0, borderwidth = 0, command = lambda: MainWindow(self.root))
-        self.B6.place(x = int(w*0.20/2), y = int(35+ h*0.88), anchor = "center")
+        self.B6.grid(column = 2, columnspan = 1, row = 28, rowspan = 1, padx = (50,20))
+        #self.B6.place(x = int(w*0.20/2), y = int(35+ h*0.88), anchor = "center")
 
         self.B7 = tk.Button(self.root, image = self.editIm, bg = bgcol, activebackground = bgcol, highlightthickness = 0, borderwidth = 0, command = lambda: ThirdFrame(self.root, self.imagewindow.img, self.imagewindow.x0, self.imagewindow.x1, self.imagewindow.y0, self.imagewindow.y1, self.imagewindow.x0s, self.imagewindow.x1s, self.imagewindow.y0s, self.imagewindow.y1s, self.channel))
-        self.B7.place(x=int(w*0.65), y = int(35+ h*0.88), anchor = "center")
+        self.B7.grid(column = 3, columnspan = 1, row = 28, rowspan = 1)
+        # self.B7.place(x=int(w*0.65), y = int(35+ h*0.88), anchor = "center")
 
         self.B8 = tk.Button(self.root, image = self.exitIm,bg = bgcol, activebackground = bgcol, highlightthickness = 0, borderwidth = 0,  command = self.root.destroy)
-        self.B8.place(x = 100 + int(w*0.20/2), y = int(35+ h*0.88), anchor = "center")
-
-        self.ImNameLab = tk.Label(root, text = image, width = im_frame_width,bg = bgcol, fg = textcol, height = 5)
-        self.ImNameLab.place(x=int(w*0.65), y = 10, anchor = "center")
+        self.B8.grid(column = 5, columnspan = 1, row = 28, rowspan = 1)
+        # self.B8.place(x = 100 + int(w*0.20/2), y = int(35+ h*0.88), anchor = "center")
+        # self.ImNameLab.place(x=int(w*0.65), y = 10, anchor = "center")
 
         self.root.bind('<Left>', self.left)
         self.root.bind('<Right>', self.right)
@@ -366,6 +373,7 @@ class PanelWindow:
         #self.draw_im = None
         self.check_function()
         self.zoom_bind()
+        self.label_im = self.get_label()
 
     def panel_config(self):
         if isinstance(self.img, np.ndarray):
@@ -382,10 +390,11 @@ class PanelWindow:
 
     def get_label(self):
         global pred_path
-        if not os.path.isfile(pred_path + image):
+        if not os.path.isfile(pred_path + self.image):
             tkinter.messagebox.showinfo("Error", "Labels are missing, please select another image")
             MainWindow(self.root)
             return
+
         label_im = skimage.io.imread(pred_path + image)
 
         if len(label_im.shape) > 2:
@@ -462,7 +471,7 @@ class PanelWindow:
                 cell_im = label2rgb(label_im, image = cell_im, bg_label=0)
 
         if self.var4.get():
-            label_im = self.get_label()
+            label_im = self.label_im
             cell_im = self.get_boundaries(label_im, cell_im)
 
         self.image_configure(cell_im)
@@ -693,7 +702,7 @@ class PanelWindow:
         new_label_im = img_as_ubyte(new_label_im)
 
         labels = skimage.morphology.label(new_label_im)
-
+        
         self.label_im = labels/(len(np.unique(labels))-1)
 
         self.draw_im = self.orig_im.copy() #img_as_float(skimage.io.imread(image_path + image))
@@ -706,7 +715,7 @@ class PanelWindow:
         if self.channel != "lysosome":
             self.recompile()
 
-        skimage.io.imsave("new_labels/" + self.channel + "/" + image,self.label_im)
+        skimage.io.imsave(pred_path + image,self.label_im)
 
 
     def hide_labels(self, event):
@@ -778,6 +787,8 @@ cell_path = root_dir + '/predictions/cell/'
 lysosome_path = root_dir + '/predictions/lysosome/'
 nuclei_path = root_dir + '/predictions/nuclei/'
 
+
+
 savedir_nuc = root_dir + "/new_labels/nuclei/"
 savedir_cell = root_dir + "/new_labels/cell/"
 savedir_lysosome = root_dir + "/new_labels/lysosome/"
@@ -786,6 +797,8 @@ os.makedirs(savedir_cell, exist_ok = True)
 os.makedirs(savedir_lysosome, exist_ok = True)
 
 channels = {"nuclei": nuclei_path, "cell": cell_path, "lysosome":lysosome_path}
+
+pred_path = channels["nuclei"]
 
 #x = (screen_width/2) - (w/2)
 #y = (screen_height/2) - (h/2)
@@ -803,8 +816,11 @@ def main():
     root.title("Prediction Editor")
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
+    print(screen_width, screen_height)
     x = (screen_width/2) - (w/2)
+
     y = (screen_height/2) - (h/2)
+
     root.geometry("{}x{}+{}+{}".format(w, h, int(x), int(y)))
     root.configure(bg = "#4a3c4d")
     root.resizable(False, False)
