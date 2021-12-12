@@ -236,18 +236,20 @@ class SecondFrame:
     def left(self, event):
         global image
         images = os.listdir(image_path)
-        im_index = images.index(image)-1
+        im_index = max(images.index(image)-1,0)
         image = images[im_index]
         self.img = skimage.io.imread(image_path + image)
+        self.imagewindow.label_im = self.imagewindow.get_label()
         self.imagewindow.check_function()
         self.ImNameLab.configure(text = image)
 
     def right(self, event):
         global image
         images = os.listdir(image_path)
-        im_index = images.index(image)+1
+        im_index = min(images.index(image)+1, len(images)-1)
         image = images[im_index]
         self.img = skimage.io.imread(image_path + image)
+        self.imagewindow.label_im = self.imagewindow.get_label()
         self.imagewindow.check_function()
         self.ImNameLab.configure(text = image)
 
